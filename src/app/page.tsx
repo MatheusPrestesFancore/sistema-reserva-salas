@@ -4,15 +4,18 @@
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
-import RoomCard from '@/src/components/RoomCard'; // Importando nosso novo componente
+import RoomSection from '@/src/components/RoomSection'; // Importando nosso novo componente de seção
 
 // Imports do Chakra UI
-import { Box, Container, Heading, SimpleGrid, Text, Spinner } from '@chakra-ui/react';
+import { Box, Container, Heading, Text, Spinner, VStack, Icon, Flex } from '@chakra-ui/react';
+import { ArrowDownIcon } from '@chakra-ui/icons';
 
 interface Sala {
   id: string;
   nome: string;
   capacidade?: number;
+  recursos?: string[];
+  fotoUrl?: string;
 }
 
 export default function HomePage() {
@@ -25,8 +28,7 @@ export default function HomePage() {
         const querySnapshot = await getDocs(collection(db, "salas"));
         const salasData = querySnapshot.docs.map((doc: QueryDocumentSnapshot<DocumentData>) => ({
           id: doc.id,
-          nome: doc.data().nome,
-          capacidade: doc.data().capacidade,
+          ...(doc.data() as Omit<Sala, 'id'>)
         }));
         setSalas(salasData);
       } catch (error) {
@@ -48,20 +50,45 @@ export default function HomePage() {
   }
 
   return (
-    <Container maxW="container.xl" py={12}>
-      <Heading as="h1" mb={8} color="white">
-        Salas de Reunião
-      </Heading>
-      {salas.length > 0 ? (
-        // SimpleGrid cria uma grade responsiva automaticamente
-        <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
-          {salas.map((sala) => (
-            <RoomCard key={sala.id} sala={sala} />
-          ))}
-        </SimpleGrid>
-      ) : (
-        <Text color="gray.500">Nenhuma sala encontrada.</Text>
-      )}
-    </Container>
+    <Box>
+      {/* Seção 1: O Hero de Boas-Vindas */}
+      <Flex
+        as="section"
+        w="full"
+        h="90vh" // Ocupa quase a tela inteira
+        align="center"
+        justify="center"
+        textAlign="center"
+        direction="column"
+      >
+        <Heading as="h1" size="4xl" color="white" mb={4}>
+          Reserve sua Sala de Reunião
+        </Heading>
+        <Text fontSize="xl" color="gray.300" maxW="600px">
+          Um sistema simples e elegante para agilizar o agendamento de salas na Fancore.
+        </Text>
+        <Icon as={ArrowDownIcon} w={8} h={8} mt={16} color="gray.500" />
+      </Flex>
+
+      {/* Seção 2: A Lista de Salas com Animação */}
+      <Container maxW="container.xl" py={12}>
+        <VStack spacing={10} divider={<Box h="1px" bg="gray.700" />}>
+          {salas.length > 0 ? (
+            salas.map((sala, index) => (
+              <RoomSection
+                key={sala.id}
+                sala={sala}
+                // AQUI A MÁGICA ACONTECE:
+                // Se o índice for par (0, 2, ...), a imagem fica na esquerda.
+                // Se for ímpar (1, 3, ...), a imagem fica na direita.
+                imageSide={index % 2 === 0 ? 'left' : 'right'}
+              />
+            ))
+          ) : (
+            <Text color="gray.500">Nenhuma sala encontrada.</Text>
+          )}
+        </VStack>
+      </Container>
+    </Box>
   );
 }
