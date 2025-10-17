@@ -7,18 +7,16 @@ import Link from 'next/link';
 import { db } from '@/lib/firebase';
 import { doc, getDoc, collection, query, where, onSnapshot, Timestamp } from 'firebase/firestore';
 import BookingModal from '@/src/components/BookingModal';
-import AnimatedSection from '@/src/components/AnimatedSection'; // Nosso novo componente de animação
+import AnimatedSection from '@/src/components/AnimatedSection';
 
-// Imports do Chakra UI
 import { Box, Container, Heading, Text, Button, Spinner, VStack, List, ListItem, ListIcon, Divider, Flex, Image } from '@chakra-ui/react';
 import { ArrowBackIcon, CheckCircleIcon } from '@chakra-ui/icons';
 
-// Atualizamos a interface para incluir a foto
 interface SalaDetails {
   nome: string;
   capacidade: number;
   recursos: string[];
-  fotoUrl?: string; // O '?' torna o campo opcional
+  fotoUrl?: string;
 }
 interface Reserva {
   id: string;
@@ -71,7 +69,15 @@ export default function SalaPage() {
     <Container maxW="container.lg" py={12} color="white">
       <AnimatedSection direction="left">
         <Link href="/" passHref>
-          <Button as="a" leftIcon={<ArrowBackIcon />} mb={6} variant="outline" _hover={{ borderColor: 'brand.orange', color: 'brand.orange' }}>
+          <Button
+            as="a"
+            leftIcon={<ArrowBackIcon />}
+            mb={6}
+            variant="outline"
+            borderColor="brand.orange"
+            color="brand.orange"
+            _hover={{ bg: 'brand.orange', color: 'white' }}
+          >
             Voltar para todas as salas
           </Button>
         </Link>
@@ -81,7 +87,6 @@ export default function SalaPage() {
 
       <Divider my={12} borderColor="gray.700" />
 
-      {/* Seção 1: Foto à esquerda, Recursos à direita */}
       <Flex direction={{ base: 'column', md: 'row' }} align="center" gap={10} mb={12}>
         <AnimatedSection direction="left" delay={0.2}>
           <Box flex="1">
@@ -105,7 +110,6 @@ export default function SalaPage() {
         </AnimatedSection>
       </Flex>
       
-      {/* Botão de Reserva Centralizado */}
       <AnimatedSection delay={0.2}>
         <Box textAlign="center" my={12}>
           <Button
@@ -123,7 +127,6 @@ export default function SalaPage() {
 
       <Divider my={12} borderColor="gray.700" />
 
-      {/* Seção 2: Reservas */}
       <AnimatedSection>
         <Heading as="h2" size="xl" mb={6} textAlign="center">Reservas Agendadas</Heading>
         <VStack spacing={4} align="stretch">
