@@ -5,13 +5,14 @@ import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, query, where, orderBy, onSnapshot, Timestamp } from 'firebase/firestore';
 
-// Imports do Chakra UI
-import { Box, SimpleGrid, Heading, Text, VStack, Spinner, Flex } from '@chakra-ui/react';
+// NOVO: Importamos o componente Image
+import { Box, SimpleGrid, Heading, Text, VStack, Spinner, Flex, Image } from '@chakra-ui/react';
 
 // Nossas interfaces de dados
 interface Sala {
   id: string;
   nome: string;
+  fotoUrl?: string; // NOVO: Adicionamos o campo para a foto
 }
 interface Reserva {
   id: string;
@@ -20,7 +21,6 @@ interface Reserva {
   inicio: Timestamp;
   fim: Timestamp;
 }
-// Interface para agrupar as reservas por sala
 interface ReservasPorSala {
   [salaId: string]: Reserva[];
 }
@@ -31,28 +31,30 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Busca inicial pelas salas
+    // Busca pelas salas, agora incluindo a fotoUrl
     const fetchSalas = async () => {
       const salasCollection = collection(db, 'salas');
       const salasSnapshot = await onSnapshot(salasCollection, (snapshot) => {
-        const salasData = snapshot.docs.map(doc => ({ id: doc.id, nome: doc.data().nome })) as Sala[];
+        const salasData = snapshot.docs.map(doc => ({ 
+          id: doc.id, 
+          nome: doc.data().nome, 
+          fotoUrl: doc.data().fotoUrl // NOVO: Buscando a URL da foto
+        })) as Sala[];
         setSalas(salasData);
       });
-      return salasSnapshot; // Retorna a função de unsubscribe
+      return salasSnapshot;
     };
 
-    // Busca em tempo real pelas reservas futuras
+    // A busca por reservas continua a mesma
     const listenToReservas = () => {
       const agora = Timestamp.now();
       const q = query(
         collection(db, 'reservas'),
-        where('fim', '>=', agora), // Apenas reservas que ainda não acabaram
+        where('fim', '>=', agora),
         orderBy('fim'),
         orderBy('inicio')
       );
-
       const unsubscribe = onSnapshot(q, (snapshot) => {
-        // Agrupamos as reservas por salaId para facilitar a exibição
         const reservasAgrupadas = snapshot.docs.reduce((acc, doc) => {
           const reserva = { id: doc.id, ...doc.data() } as Reserva;
           const salaId = doc.data().salaId;
@@ -62,20 +64,15 @@ export default function DashboardPage() {
           acc[salaId].push(reserva);
           return acc;
         }, {} as ReservasPorSala);
-
         setReservas(reservasAgrupadas);
         setLoading(false);
       });
-      return unsubscribe; // Retorna a função de unsubscribe
+      return unsubscribe;
     };
 
     fetchSalas();
     const unsubscribeReservas = listenToReservas();
-
-    // Limpa os listeners quando o componente é desmontado
-    return () => {
-      unsubscribeReservas();
-    };
+    return () => unsubscribeReservas();
   }, []);
 
   if (loading) {
@@ -84,10 +81,21 @@ export default function DashboardPage() {
 
   return (
     <Box p={8} bg="brand.dark" minH="100vh" color="white">
-      <Heading textAlign="center" mb={10} size="2xl">Agenda das Salas</Heading>
+      <Heading textAlign="center" mb={10} size="3xl">Agenda das Salas</Heading>
       <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={8}>
         {salas.map((sala) => (
           <VStack key={sala.id} p={5} bg="gray.800" borderRadius="lg" align="stretch" spacing={4}>
+            {/* NOVO: Bloco para exibir a imagem */}
+            {sala.fotoUrl && (
+              <Image 
+                src={sala.fotoUrl} 
+                alt={`Foto da ${sala.nome}`}
+                borderRadius="md"
+                objectFit="cover"
+                h="200px" // Altura fixa para manter o layout consistente
+                w="100%"
+              />
+            )}
             <Heading size="lg" textAlign="center" pb={3} borderBottom="1px solid" borderColor="gray.700">
               {sala.nome}
             </Heading>
@@ -105,7 +113,7 @@ export default function DashboardPage() {
                 </Box>
               ))
             ) : (
-              <Flex align="center" justify="center" h="100%">
+              <Flex align="center" justify="center" h="100%" minH="100px">
                 <Text color="gray.500">Nenhuma reserva futura</Text>
               </Flex>
             )}
