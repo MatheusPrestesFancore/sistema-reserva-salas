@@ -45,12 +45,14 @@ export default function Login() {
         <HStack spacing={4}>
           <Text color="white">Bem-vindo, {user.displayName || user.email}!</Text>
           <Link href="/minhas-reservas" passHref>
+            {/* --- ESTILO ATUALIZADO AQUI --- */}
             <Button
               as="a"
               size="sm"
               variant="outline"
-              borderColor="gray.600"
-              _hover={{ bg: 'whiteAlpha.200', borderColor: 'gray.400' }}
+              borderColor="brand.orange" // Borda laranja
+              color="brand.orange" // Texto laranja
+              _hover={{ bg: 'brand.orange', color: 'white' }} // Efeito hover sólido
             >
               Minhas Reservas
             </Button>
