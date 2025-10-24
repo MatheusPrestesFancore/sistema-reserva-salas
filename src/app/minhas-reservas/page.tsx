@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
+import Link from 'next/link'; // Importe o Link
 import { db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot, doc, deleteDoc, Timestamp, orderBy } from 'firebase/firestore';
 import { useAuth } from '@/src/context/AuthContext';
@@ -29,19 +29,16 @@ export default function MinhasReservasPage() {
       setLoading(false);
       return;
     }
-
-    const q = query(
-      collection(db, 'reservas'),
-      where('usuarioEmail', '==', user.email),
-      orderBy('inicio', 'desc')
-    );
-
+    const q = query(collection(db, 'reservas'), where('usuarioEmail', '==', user.email), orderBy('inicio', 'desc'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const userReservas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Reserva[];
       setReservas(userReservas);
       setLoading(false);
+    }, (error) => {
+      console.error("Erro no listener de Minhas Reservas:", error);
+      // Aqui é onde o erro do índice aparece!
+      setLoading(false);
     });
-
     return () => unsubscribe();
   }, [user]);
 
@@ -49,7 +46,6 @@ export default function MinhasReservasPage() {
     if (!window.confirm('Tem certeza que deseja cancelar esta reserva?')) {
       return;
     }
-
     try {
       const reservaRef = doc(db, 'reservas', reservaId);
       await deleteDoc(reservaRef);
@@ -78,24 +74,23 @@ export default function MinhasReservasPage() {
 
   return (
     <Container maxW="container.lg" py={12}>
-      <Link href="/" passHref>
-        <Button
-          as="a"
-          leftIcon={<ArrowBackIcon />}
-          mb={8}
-          variant="outline"
-          borderColor="brand.orange"
-          color="brand.orange"
-          _hover={{ bg: 'brand.orange', color: 'white' }}
-        >
-          Voltar para o início
-        </Button>
-      </Link>
+      {/* --- CORREÇÃO AQUI --- */}
+      <Button
+        as={Link}
+        href="/"
+        leftIcon={<ArrowBackIcon />}
+        mb={8}
+        variant="outline"
+        borderColor="brand.orange"
+        color="brand.orange"
+        _hover={{ bg: 'brand.orange', color: 'white' }}
+      >
+        Voltar para o início
+      </Button>
 
       <Heading as="h1" mb={8} color="white">
         Minhas Reservas
       </Heading>
-
       {!user ? (
         <Text color="gray.400">Você precisa fazer login para ver suas reservas.</Text>
       ) : reservas.length === 0 ? (

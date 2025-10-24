@@ -5,7 +5,7 @@ import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/
 import { useAuth } from '@/src/context/AuthContext';
 import { app } from '@/lib/firebase';
 import { usePathname } from 'next/navigation';
-import Link from 'next/link';
+import Link from 'next/link'; // Importe o Link do Next.js
 import { Button, HStack, Text, Box } from '@chakra-ui/react';
 
 const auth = getAuth(app);
@@ -44,19 +44,21 @@ export default function Login() {
       {user ? (
         <HStack spacing={4}>
           <Text color="white">Bem-vindo, {user.displayName || user.email}!</Text>
-          <Link href="/minhas-reservas" passHref>
-            {/* --- ESTILO ATUALIZADO AQUI --- */}
-            <Button
-              as="a"
-              size="sm"
-              variant="outline"
-              borderColor="brand.orange" // Borda laranja
-              color="brand.orange" // Texto laranja
-              _hover={{ bg: 'brand.orange', color: 'white' }} // Efeito hover sólido
-            >
-              Minhas Reservas
-            </Button>
-          </Link>
+          
+          {/* --- CORREÇÃO AQUI --- */}
+          {/* Trocamos <Link> e <Button as="a"> por um único <Button as={Link}> */}
+          <Button
+            as={Link}
+            href="/minhas-reservas"
+            size="sm"
+            variant="outline"
+            borderColor="brand.orange"
+            color="brand.orange"
+            _hover={{ bg: 'brand.orange', color: 'white' }}
+          >
+            Minhas Reservas
+          </Button>
+
           <Button
             size="sm"
             onClick={handleLogout}

@@ -3,13 +3,12 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import Link from 'next/link';
+import Link from 'next/link'; // Importe o Link
 import { db } from '@/lib/firebase';
 import { doc, getDoc, collection, query, where, onSnapshot, Timestamp, orderBy } from 'firebase/firestore';
 import BookingModal from '@/src/components/BookingModal';
 import AnimatedSection from '@/src/components/AnimatedSection';
 
-// NOVO: Importamos o FormControl, FormLabel e Input para o filtro de data
 import { Box, Container, Heading, Text, Button, Spinner, VStack, List, ListItem, ListIcon, Divider, Flex, Image, FormControl, FormLabel, Input } from '@chakra-ui/react';
 import { ArrowBackIcon, CheckCircleIcon } from '@chakra-ui/icons';
 
@@ -27,7 +26,6 @@ interface Reserva {
   fim: Timestamp;
 }
 
-// Função para pegar a data de hoje no formato YYYY-MM-DD
 const getTodayString = () => new Date().toISOString().split('T')[0];
 
 export default function SalaPage() {
@@ -38,37 +36,20 @@ export default function SalaPage() {
   const [reservas, setReservas] = useState<Reserva[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
-  // NOVO: Estado para guardar a data selecionada pelo filtro
   const [selectedDate, setSelectedDate] = useState(getTodayString());
 
   useEffect(() => {
     if (!id) return;
-
-    // Converte a string da data (ex: 2025-10-22) para objetos Date
-    // Usamos UTC para evitar problemas de fuso horário com o input de data
     const date = new Date(selectedDate);
     const startOfDay = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 0, 0, 0));
     const endOfDay = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 23, 59, 59));
-
-    // A nova consulta filtra por sala E pelo intervalo de data selecionado
-    const q = query(
-      collection(db, "reservas"), 
-      where("salaId", "==", id),
-      where("inicio", ">=", Timestamp.fromDate(startOfDay)),
-      where("inicio", "<=", Timestamp.fromDate(endOfDay)),
-      orderBy("inicio")
-    );
-
+    const q = query(collection(db, "reservas"), where("salaId", "==", id), where("inicio", ">=", Timestamp.fromDate(startOfDay)), where("inicio", "<=", Timestamp.fromDate(endOfDay)), orderBy("inicio"));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const reservasData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Reserva[];
       setReservas(reservasData);
     }, (error) => {
       console.error("Erro ao buscar reservas: ", error);
-      // Este erro provavelmente será sobre a falta de um índice!
     });
-
-    // A busca pelos detalhes da sala continua igual
     const fetchSalaDetails = async () => {
       const salaDocRef = doc(db, "salas", id);
       const salaDocSnap = await getDoc(salaDocRef);
@@ -78,10 +59,8 @@ export default function SalaPage() {
       setLoading(false);
     };
     fetchSalaDetails();
-    
-    // Limpamos o listener quando o componente é desmontado ou a data muda
     return () => unsubscribe();
-  }, [id, selectedDate]); // O useEffect agora re-executa se a data mudar!
+  }, [id, selectedDate]);
 
   if (loading) {
     return <Box display="flex" justifyContent="center" alignItems="center" height="100vh"><Spinner size="xl" color="brand.orange" /></Box>;
@@ -92,19 +71,24 @@ export default function SalaPage() {
 
   return (
     <Container maxW="container.lg" py={12} color="white">
-      {/* ... (Seção do Título e Botão Voltar - sem alteração) ... */}
       <AnimatedSection direction="left">
-        <Link href="/" passHref>
-          <Button as="a" leftIcon={<ArrowBackIcon />} mb={6} variant="outline" borderColor="brand.orange" color="brand.orange" _hover={{ bg: 'brand.orange', color: 'white' }}>
-            Voltar para todas as salas
-          </Button>
-        </Link>
+        {/* --- CORREÇÃO AQUI --- */}
+        <Button
+          as={Link}
+          href="/"
+          leftIcon={<ArrowBackIcon />}
+          mb={6}
+          variant="outline"
+          borderColor="brand.orange"
+          color="brand.orange"
+          _hover={{ bg: 'brand.orange', color: 'white' }}
+        >
+          Voltar para todas as salas
+        </Button>
         <Heading as="h1" size="2xl" mb={4}>{sala.nome}</Heading>
         <Text fontSize="xl" color="gray.300">Capacidade: {sala.capacidade} pessoas</Text>
       </AnimatedSection>
       <Divider my={12} borderColor="gray.700" />
-      
-      {/* ... (Seção da Foto e Recursos - sem alteração) ... */}
       <Flex direction={{ base: 'column', md: 'row' }} align="center" gap={10} mb={12}>
         <AnimatedSection direction="left" delay={0.2}>
           <Box flex="1">{sala.fotoUrl && <Image src={sala.fotoUrl} alt={`Foto da ${sala.nome}`} borderRadius="lg" shadow="2xl" />}</Box>
@@ -116,8 +100,6 @@ export default function SalaPage() {
           </Box>
         </AnimatedSection>
       </Flex>
-      
-      {/* ... (Botão de Reserva - sem alteração) ... */}
       <AnimatedSection delay={0.2}>
         <Box textAlign="center" my={12}>
           <Button colorScheme="orange" onClick={() => setIsModalOpen(true)} size="lg" bg="brand.orange" _hover={{ bg: 'brand.orangeHover' }} px={10} py={6}>
@@ -125,14 +107,10 @@ export default function SalaPage() {
           </Button>
         </Box>
       </AnimatedSection>
-
       <Divider my={12} borderColor="gray.700" />
-
-      {/* --- SEÇÃO DE RESERVAS ATUALIZADA --- */}
       <AnimatedSection>
         <Flex justify="space-between" align="center" mb={6}>
           <Heading as="h2" size="xl">Reservas Agendadas</Heading>
-          {/* NOVO: O filtro de data */}
           <FormControl w="200px">
             <FormLabel fontSize="sm" m={0}>Mostrar dia:</FormLabel>
             <Input
@@ -143,19 +121,14 @@ export default function SalaPage() {
             />
           </FormControl>
         </Flex>
-        
         <VStack spacing={4} align="stretch">
           {reservas.length > 0 ? (
             reservas.map(reserva => (
               <Box key={reserva.id} p={5} borderWidth="1px" borderColor="gray.700" borderRadius="md" bg="gray.800">
                 <Text fontWeight="bold" fontSize="lg">{reserva.titulo}</Text>
                 <Text fontSize="sm" color="gray.400">Reservado por: {reserva.usuarioNome || 'Usuário'}</Text>
-                <Text fontSize="sm" color="gray.300" mt={2}>
-                  De: {reserva.inicio.toDate().toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                </Text>
-                <Text fontSize="sm" color="gray.300">
-                  Até: {reserva.fim.toDate().toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                </Text>
+                <Text fontSize="sm" color="gray.300" mt={2}>De: {reserva.inicio.toDate().toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</Text>
+                <Text fontSize="sm" color="gray.300">Até: {reserva.fim.toDate().toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</Text>
               </Box>
             ))
           ) : (
@@ -163,7 +136,6 @@ export default function SalaPage() {
           )}
         </VStack>
       </AnimatedSection>
-
       {isModalOpen && <BookingModal salaId={id} onClose={() => setIsModalOpen(false)} />}
     </Container>
   );
