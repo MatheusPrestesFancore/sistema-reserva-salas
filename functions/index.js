@@ -61,7 +61,7 @@ exports.criarEventoNoGoogleAgenda = functions
         timeZone: "America/Sao_Paulo",
       },
       // Adiciona quem reservou como convidado
-      attendees: [{ email: dadosReserva.usuarioEmail }],
+      //attendees: [{ email: dadosReserva.usuarioEmail }],
     };
 
     try {
