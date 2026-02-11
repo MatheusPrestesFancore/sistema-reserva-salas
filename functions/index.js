@@ -10,7 +10,7 @@ initializeApp();
 
 // --- CONFIGURAÇÃO IMPORTANTE ---
 // Cole aqui o ID da sua agenda (veja abaixo como pegar)
-const CALENDAR_ID = "c_d0498c565f51712927ef7e7aea9f5c7fb658765068306599ef0ab00569093cea@group.calendar.google.com";
+const CALENDAR_ID = "be31954cb0bbfec58cb8c51fe33cbd73bdabddf54566463210d86ce768681b41@group.calendar.google.com";
 // ------------------------------
 
 // Configura a autenticação do "robô".
