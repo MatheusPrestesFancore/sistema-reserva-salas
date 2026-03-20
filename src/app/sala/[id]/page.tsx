@@ -118,6 +118,13 @@ export default function SalaPage() {
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
               focusBorderColor="brand.orange"
+              color="white" 
+              sx={{
+                "&::-webkit-calendar-picker-indicator": {
+                  cursor: "pointer",
+                  filter: "invert(1)", // Inverte o ícone preto para branco
+                },
+              }}
             />
           </FormControl>
         </Flex>

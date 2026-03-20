@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, Timestamp, query, where, getDocs, or, and } from 'firebase/firestore'; 
 import { useAuth } from '@/src/context/AuthContext';
-import CustomTimeSelect from './CustomTimeSelect'; // Importando nosso novo componente
+import CustomTimeSelect from './CustomTimeSelect'; 
 
 import {
   Modal,
@@ -22,6 +22,7 @@ import {
   VStack,
   HStack,
   FormErrorMessage,
+  Text,
 } from '@chakra-ui/react';
 
 interface BookingModalProps {
@@ -41,9 +42,8 @@ const generateTimeSlots = () => {
 export default function BookingModal({ salaId, onClose }: BookingModalProps) {
   const { user } = useAuth();
   const [titulo, setTitulo] = useState('');
-  const [dataInicio, setDataInicio] = useState('');
+  const [data, setData] = useState(''); 
   const [horaInicio, setHoraInicio] = useState('');
-  const [dataFim, setDataFim] = useState('');
   const [horaFim, setHoraFim] = useState('');
   
   const [error, setError] = useState('');
@@ -56,14 +56,15 @@ export default function BookingModal({ salaId, onClose }: BookingModalProps) {
     setError('');
 
     if (!user) { setError('Você precisa estar logado para fazer uma reserva.'); return; }
-    if (!titulo || !dataInicio || !horaInicio || !dataFim || !horaFim) {
+    
+    if (!titulo || !data || !horaInicio || !horaFim) {
       setError('Por favor, preencha todos os campos.'); return;
     }
 
     setLoading(true);
 
-    const inicioTimestamp = Timestamp.fromDate(new Date(`${dataInicio}T${horaInicio}`));
-    const fimTimestamp = Timestamp.fromDate(new Date(`${dataFim}T${horaFim}`));
+    const inicioTimestamp = Timestamp.fromDate(new Date(`${data}T${horaInicio}`));
+    const fimTimestamp = Timestamp.fromDate(new Date(`${data}T${horaFim}`));
 
     if (fimTimestamp <= inicioTimestamp) {
       setError('O horário de término deve ser posterior ao horário de início.');
@@ -73,7 +74,15 @@ export default function BookingModal({ salaId, onClose }: BookingModalProps) {
 
     try {
       const reservasRef = collection(db, 'reservas');
-      const q = query(reservasRef, and(where('salaId', '==', salaId), or(and(where('inicio', '>=', inicioTimestamp), where('inicio', '<', fimTimestamp)), and(where('fim', '>', inicioTimestamp), where('fim', '<=', fimTimestamp)), and(where('inicio', '<', inicioTimestamp), where('fim', '>', fimTimestamp)))));
+      const q = query(reservasRef, and(
+        where('salaId', '==', salaId), 
+        or(
+          and(where('inicio', '>=', inicioTimestamp), where('inicio', '<', fimTimestamp)), 
+          and(where('fim', '>', inicioTimestamp), where('fim', '<=', fimTimestamp)), 
+          and(where('inicio', '<', inicioTimestamp), where('fim', '>', fimTimestamp))
+        )
+      ));
+      
       const conflitosSnapshot = await getDocs(q);
 
       if (!conflitosSnapshot.empty) {
@@ -96,8 +105,8 @@ export default function BookingModal({ salaId, onClose }: BookingModalProps) {
       onClose();
 
     } catch (err) {
-      console.error("Erro ao verificar ou criar reserva: ", err);
-      setError('Ocorreu um erro inesperado. Verifique o console do navegador.');
+      console.error("Erro ao criar reserva: ", err);
+      setError('Ocorreu um erro inesperado.');
     } finally {
       setLoading(false);
     }
@@ -111,7 +120,7 @@ export default function BookingModal({ salaId, onClose }: BookingModalProps) {
         <ModalCloseButton />
         <ModalBody>
           <form onSubmit={handleSubmit}>
-            <VStack spacing={4}>
+            <VStack spacing={4} align="stretch">
               <FormControl isInvalid={!!error}>
                 <FormLabel>Título da Reunião</FormLabel>
                 <Input
@@ -122,48 +131,51 @@ export default function BookingModal({ salaId, onClose }: BookingModalProps) {
                 />
               </FormControl>
 
+              {/* ALTERAÇÃO: Fundo escuro nativo e ícone invertido para branco */}
               <FormControl isInvalid={!!error}>
-                <FormLabel>Início</FormLabel>
-                <HStack>
-                  <Input
-                    type="date"
-                    value={dataInicio}
-                    onChange={(e) => setDataInicio(e.target.value)}
-                    focusBorderColor="brand.orange"
-                  />
-                  {/* SUBSTITUÍDO AQUI */}
+                <FormLabel>Data da Reserva</FormLabel>
+                <Input
+                  type="date"
+                  value={data}
+                  onChange={(e) => setData(e.target.value)}
+                  focusBorderColor="brand.orange"
+                  color="white" // Garante que a data digitada fique branca
+                  sx={{
+                    "&::-webkit-calendar-picker-indicator": {
+                      cursor: "pointer",
+                      filter: "invert(1)", // <-- O TRUQUE MÁGICO: Inverte o ícone preto para branco!
+                    },
+                  }}
+                />
+              </FormControl>
+
+              <HStack spacing={4}>
+                <FormControl isInvalid={!!error}>
+                  <FormLabel>Início</FormLabel>
                   <CustomTimeSelect
                     placeholder="Hora"
                     value={horaInicio}
                     onChange={setHoraInicio}
                     timeSlots={timeSlots}
                   />
-                </HStack>
-              </FormControl>
+                </FormControl>
 
-              <FormControl isInvalid={!!error}>
-                <FormLabel>Fim</FormLabel>
-                <HStack>
-                  <Input
-                    type="date"
-                    value={dataFim}
-                    onChange={(e) => setDataFim(e.target.value)}
-                    focusBorderColor="brand.orange"
-                  />
-                  {/* E AQUI */}
+                <FormControl isInvalid={!!error}>
+                  <FormLabel>Término</FormLabel>
                   <CustomTimeSelect
                     placeholder="Hora"
                     value={horaFim}
                     onChange={setHoraFim}
                     timeSlots={timeSlots}
                   />
-                </HStack>
-              </FormControl>
+                </FormControl>
+              </HStack>
               
-              {error && <FormErrorMessage>{error}</FormErrorMessage>}
+              {error && <Text color="red.400" fontSize="sm">{error}</Text>}
             </VStack>
           </form>
         </ModalBody>
+        
         <ModalFooter>
           <Button variant="ghost" mr={3} onClick={onClose} _hover={{ bg: 'whiteAlpha.200' }}>
             Cancelar
