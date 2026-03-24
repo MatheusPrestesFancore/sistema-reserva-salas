@@ -110,6 +110,19 @@ export default function DashboardPage() {
                 'scrollbar-width': 'none'                    /* Esconde no Firefox */
               }}
             >
+              
+              {/* VVV --- A FOTO VOLTOU AQUI --- VVV */}
+            {sala.fotoUrl && (
+              <Image 
+                src={sala.fotoUrl} 
+                alt={`Foto da ${sala.nome}`}
+                borderRadius="md"
+                objectFit="cover"
+                h="200px"
+                w="100%"
+              />
+            )}
+
             <Heading size="lg" textAlign="center" pb={3} borderBottom="1px solid" borderColor="gray.700">
               {sala.nome}
             </Heading>
