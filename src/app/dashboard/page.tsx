@@ -26,6 +26,13 @@ export default function DashboardPage() {
   const [salas, setSalas] = useState<Sala[]>([]);
   const [reservas, setReservas] = useState<ReservasPorSala>({});
   const [loading, setLoading] = useState(true);
+  const [horaAtual, setHoraAtual] = useState(new Date());
+
+  useEffect(() => {
+    // 300000 milissegundos = 5 minutos
+    const timer = setInterval(() => setHoraAtual(new Date()), 300000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     // Busca pelas salas (sem alteração)
@@ -88,23 +95,29 @@ export default function DashboardPage() {
       <Heading textAlign="center" mb={10} size="3xl">Agenda do Dia</Heading>
       <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={8}>
         {salas.map((sala) => (
-          <VStack key={sala.id} p={5} bg="gray.800" borderRadius="lg" align="stretch" spacing={4}>
-            {sala.fotoUrl && (
-              <Image 
-                src={sala.fotoUrl} 
-                alt={`Foto da ${sala.nome}`}
-                borderRadius="md"
-                objectFit="cover"
-                h="200px"
-                w="100%"
-              />
-            )}
+              <VStack 
+              key={sala.id} 
+              p={5} 
+              bg="gray.800" 
+              borderRadius="lg" 
+              align="stretch" 
+              spacing={4}
+              maxH="70vh"        /* Limita a altura para não vazar o limite da TV */
+              overflowY="auto"   /* Permite rolar se tiver muitas reuniões */
+              css={{
+                '&::-webkit-scrollbar': { display: 'none' }, /* Esconde a barra feia no Chrome/Edge */
+                '-ms-overflow-style': 'none',                /* Esconde no IE/Edge antigo */
+                'scrollbar-width': 'none'                    /* Esconde no Firefox */
+              }}
+            >
             <Heading size="lg" textAlign="center" pb={3} borderBottom="1px solid" borderColor="gray.700">
               {sala.nome}
             </Heading>
             
             {(reservas[sala.id] && reservas[sala.id].length > 0) ? (
-              reservas[sala.id].map(reserva => (
+              reservas[sala.id]
+              .filter(reserva => reserva.fim.toDate() > horaAtual)
+              .map(reserva => (
                 <Box key={reserva.id} bg="gray.700" p={4} borderRadius="md">
                   <Text fontWeight="bold" fontSize="lg">{reserva.titulo}</Text>
                   <Text color="gray.300">por: {reserva.usuarioNome}</Text>

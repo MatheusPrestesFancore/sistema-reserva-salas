@@ -49,6 +49,18 @@ export default function Login() {
           {/* Trocamos <Link> e <Button as="a"> por um único <Button as={Link}> */}
           <Button
             as={Link}
+            href="/agenda"
+            size="sm"
+            variant="outline"
+            borderColor="brand.orange"
+            color="brand.orange"
+            _hover={{ bg: 'brand.orange', color: 'white' }}
+          >
+            Agenda do Dia
+          </Button>
+
+          <Button
+            as={Link}
             href="/minhas-reservas"
             size="sm"
             variant="outline"
