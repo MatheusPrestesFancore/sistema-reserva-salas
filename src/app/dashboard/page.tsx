@@ -93,7 +93,7 @@ export default function DashboardPage() {
   return (
     <Box p={8} bg="brand.dark" minH="100vh" color="white">
       <Heading textAlign="center" mb={10} size="3xl">Agenda do Dia</Heading>
-      <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={8}>
+      <SimpleGrid columns={{ base: 1, md: 2, lg: 5, xl: 5 }} spacing={4}>
         {salas.map((sala) => (
               <VStack 
               key={sala.id} 

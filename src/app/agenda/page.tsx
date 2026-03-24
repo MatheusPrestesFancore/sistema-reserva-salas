@@ -133,7 +133,7 @@ export default function AgendaPage() {
       {loading ? (
         <Flex h="50vh" align="center" justify="center"><Spinner size="xl" color="brand.orange" /></Flex>
       ) : (
-        <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={8}>
+        <SimpleGrid columns={{ base: 1, md: 2, lg: 5, xl: 5 }} spacing={4}>
           {salas.map((sala) => (
             <VStack key={sala.id} p={5} bg="gray.800" borderRadius="lg" align="stretch" spacing={4}>
               {sala.fotoUrl && (
